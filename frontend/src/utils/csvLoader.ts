@@ -49,7 +49,14 @@ const validateData = (data: any[]): ClientData[] => {
 // Function to load CSV data from public folder
 export const loadCSVData = (): Promise<ClientData[]> => {
   return new Promise((resolve, reject) => {
-    Papa.parse('/super.csv', {
+    // Use the correct path based on the base URL
+    const basePath = import.meta.env.BASE_URL || '/';
+    const csvPath = `${basePath}super.csv`;
+    
+    console.log('Loading CSV from path:', csvPath);
+    console.log('Base URL:', import.meta.env.BASE_URL);
+    
+    Papa.parse(csvPath, {
       download: true,
       header: true,
       skipEmptyLines: true,
