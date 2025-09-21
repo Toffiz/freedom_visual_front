@@ -37,7 +37,7 @@ interface OnboardingFunnelProps {
   data?: any;
 }
 
-const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ data }) => {
+const OnboardingFunnel: React.FC<OnboardingFunnelProps> = ({ data: _data }) => {
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
   const [animationPhase, setAnimationPhase] = useState(0);
 

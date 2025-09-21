@@ -240,7 +240,7 @@ export const analyzeOnboardingFunnel = (data: ClientData[]): OnboardingAnalysis 
     totalUsers++;
     
     // Симулируем прохождение воронки на основе реальных данных
-    if (client.reg_date) {
+    if (client.first_event_date_min) {
       eventCounts.set('initiated_account_registration', 
         (eventCounts.get('initiated_account_registration') || 0) + 1);
       
@@ -254,8 +254,8 @@ export const analyzeOnboardingFunnel = (data: ClientData[]): OnboardingAnalysis 
           eventCounts.set('account_contract_signed', 
             (eventCounts.get('account_contract_signed') || 0) + 1);
           
-          // Определяем тип аккаунта на основе данных
-          const accountType = client.city ? 'personal' : 'business';
+          // Определяем тип аккаунта на основе количества карт
+          const accountType = client.n_cards > 1 ? 'business' : 'personal';
           if (accountType === 'personal') {
             eventCounts.set('account_registered_personal_name', 
               (eventCounts.get('account_registered_personal_name') || 0) + 1);
