@@ -93,7 +93,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
 
   const genderData = data.demographics.gender.map((item, index) => ({
     ...item,
-    color: index === 0 ? '#3B82F6' : index === 1 ? '#EC4899' : '#6B7280'
+    color: item.name.includes('Мужчин') || item.name.includes('М') ? '#3B82F6' : 
+           item.name.includes('Женщин') || item.name.includes('Ж') ? '#EC4899' : '#6B7280'
   }));
 
   const ageData = data.demographics.age.map((item, index) => ({
@@ -105,7 +106,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
     name: level.level,
     count: level.count,
     range: level.range,
-    fill: level.color
+    fill: level.color // Используем цвета из аналитики
   }));
 
   const depositDistribution = data.depositAnalysis.depositDistribution;
