@@ -348,7 +348,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
           </h3>
           <div className="flex justify-center">
             <img 
-              src="/voronka.png" 
+              src="./voronka.png" 
               alt="Воронка конверсии" 
               className="max-w-full h-auto rounded-lg shadow-md"
             />
