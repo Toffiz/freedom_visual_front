@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart3, Moon, Sun, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CSVUploader from './components/CSVUploader';
@@ -10,7 +10,6 @@ import './App.css';
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [showCSVUploader, setShowCSVUploader] = useState(false);
-  const [clientData, setClientData] = useState<ClientData[]>([]);
   const [analyticsData, setAnalyticsData] = useState<ClientPortrait | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
@@ -35,7 +34,6 @@ function App() {
   const handleCSVData = async (data: ClientData[]) => {
     setAnalyticsLoading(true);
     try {
-      setClientData(data);
       const portrait = analyzeClientData(data);
       setAnalyticsData(portrait);
     } catch (error) {
