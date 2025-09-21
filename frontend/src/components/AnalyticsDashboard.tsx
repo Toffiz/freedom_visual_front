@@ -356,7 +356,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
             <Tooltip 
               formatter={(value, name) => [
                 name === 'count' ? `${value} клиентов` : 
-                name === 'avgDeposit' ? `Средний сегмент: ${value.toFixed(1)}` : value
+                name === 'avgDeposit' ? `Средний сегмент: ${typeof value === 'number' ? value.toFixed(1) : value}` : value
               ]}
             />
             <Legend />
