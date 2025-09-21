@@ -109,6 +109,7 @@ export interface ChartDataPoint {
 export interface ClientPortrait {
   totalClients: number;
   segments: ClientSegment[];
+  wealthSegments: ClientSegment[];
   marketingChannels: MarketingChannel[];
   activityLevels: ActivityLevel[];
   onboardingStats: OnboardingStats;
@@ -126,5 +127,6 @@ export interface ClientPortrait {
     churnRate: number;
     avgInactiveDays: number;
     retentionBySegment: ChartDataPoint[];
+    churnRiskDistribution: ChartDataPoint[];
   };
 }

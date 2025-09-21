@@ -26,14 +26,37 @@ const getActivityLevel = (activity: number): { level: string; range: string; col
   return { level: 'Неактивный', range: '0', color: ACTIVITY_COLORS['Неактивный'] };
 };
 
-// Функция для определения сегмента по депозитам
-const getDepositSegment = (deposit: number): string => {
-  if (deposit === 0) return 'Без депозитов';
-  if (deposit < 100) return 'Микро ($0-99)';
-  if (deposit < 1000) return 'Малые ($100-999)';
-  if (deposit < 10000) return 'Средние ($1K-9.9K)';
-  if (deposit < 50000) return 'Крупные ($10K-49.9K)';
-  return 'VIP ($50K+)';
+// Функция для определения количества депозитов
+const getDepositCountSegment = (depositCount: number): string => {
+  if (depositCount === 0) return 'Без депозитов';
+  if (depositCount === 1) return '1 депозит';
+  if (depositCount <= 5) return '2-5 депозитов';
+  if (depositCount <= 10) return '6-10 депозитов';
+  if (depositCount <= 20) return '11-20 депозитов';
+  return '20+ депозитов';
+};
+
+// Функция для определения сегмента богатства по портфелю акций
+const getWealthSegment = (segment: number): string => {
+  if (segment <= 1) return 'Начинающий (1-й сегмент)';
+  if (segment <= 2) return 'Развивающийся (2-й сегмент)';
+  if (segment <= 3) return 'Средний портфель (3-й сегмент)';
+  if (segment <= 4) return 'Крупный портфель (4-й сегмент)';
+  if (segment <= 5) return 'VIP портфель (5-й сегмент)';
+  return 'Premium портфель (6+ сегмент)';
+};
+
+// Функция для расчета риска оттока по логу
+const calculateChurnRisk = (data: ClientData[]): { lowRisk: number; mediumRisk: number; highRisk: number; percentile75: number } => {
+  const ottokValues = data.map(client => client.avg_ottok_log).sort((a, b) => a - b);
+  const percentile75Index = Math.floor(ottokValues.length * 0.75);
+  const percentile75 = ottokValues[percentile75Index] || 0;
+  
+  const lowRisk = data.filter(client => client.avg_ottok_log < percentile75 * 0.5).length;
+  const mediumRisk = data.filter(client => client.avg_ottok_log >= percentile75 * 0.5 && client.avg_ottok_log < percentile75).length;
+  const highRisk = data.filter(client => client.avg_ottok_log >= percentile75).length;
+  
+  return { lowRisk, mediumRisk, highRisk, percentile75 };
 };
 
 // Извлечение маркетинговых каналов
@@ -135,24 +158,46 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
     activityLevels.push({ level, count, range, color });
   });
 
-  // Анализ сегментов по депозитам
+  // Анализ сегментов по количеству депозитов
   const segments: ClientSegment[] = [];
   const segmentGroups = data.reduce((groups, client) => {
-    const segment = getDepositSegment(client.total_deposit);
+    const segment = getDepositCountSegment(client.total_deposit);
     groups[segment] = (groups[segment] || []);
     groups[segment].push(client);
     return groups;
   }, {} as Record<string, ClientData[]>);
 
   Object.entries(segmentGroups).forEach(([segment, clients]) => {
-    const avgDeposit = clients.reduce((sum, client) => sum + client.total_deposit, 0) / clients.length;
+    const avgDepositCount = clients.reduce((sum, client) => sum + client.total_deposit, 0) / clients.length;
     const avgActivity = clients.reduce((sum, client) => sum + client.avg_activity, 0) / clients.length;
     
     segments.push({
       segment,
       count: clients.length,
       percentage: (clients.length / totalClients) * 100,
-      avgDeposit,
+      avgDeposit: avgDepositCount,
+      avgActivity
+    });
+  });
+
+  // Анализ портфельных сегментов (богатство по акциям)
+  const wealthSegments: ClientSegment[] = [];
+  const wealthGroups = data.reduce((groups, client) => {
+    const segment = getWealthSegment(client.last_segment_top || client.first_segment_top || 0);
+    groups[segment] = (groups[segment] || []);
+    groups[segment].push(client);
+    return groups;
+  }, {} as Record<string, ClientData[]>);
+
+  Object.entries(wealthGroups).forEach(([segment, clients]) => {
+    const avgSegmentValue = clients.reduce((sum, client) => sum + (client.last_segment_top || client.first_segment_top || 0), 0) / clients.length;
+    const avgActivity = clients.reduce((sum, client) => sum + client.avg_activity, 0) / clients.length;
+    
+    wealthSegments.push({
+      segment,
+      count: clients.length,
+      percentage: (clients.length / totalClients) * 100,
+      avgDeposit: avgSegmentValue,
       avgActivity
     });
   });
@@ -174,20 +219,23 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
   // Демографический анализ
   const demographics = analyzeDemographics(data);
 
-  // Анализ депозитов
+  // Анализ количества депозитов (исправлено: total_deposit = количество депозитов)
   const depositDistribution: ChartDataPoint[] = [
-    { name: 'Без депозитов', value: data.filter(c => c.total_deposit === 0).length },
-    { name: '$1-99', value: data.filter(c => c.total_deposit > 0 && c.total_deposit < 100).length },
-    { name: '$100-999', value: data.filter(c => c.total_deposit >= 100 && c.total_deposit < 1000).length },
-    { name: '$1K-9.9K', value: data.filter(c => c.total_deposit >= 1000 && c.total_deposit < 10000).length },
-    { name: '$10K-49.9K', value: data.filter(c => c.total_deposit >= 10000 && c.total_deposit < 50000).length },
-    { name: '$50K+', value: data.filter(c => c.total_deposit >= 50000).length }
+    { name: 'Без депозитов', value: data.filter(c => c.total_deposit === 0).length, color: '#EF4444' },
+    { name: '1 депозит', value: data.filter(c => c.total_deposit === 1).length, color: '#F59E0B' },
+    { name: '2-5 депозитов', value: data.filter(c => c.total_deposit >= 2 && c.total_deposit <= 5).length, color: '#10B981' },
+    { name: '6-10 депозитов', value: data.filter(c => c.total_deposit >= 6 && c.total_deposit <= 10).length, color: '#3B82F6' },
+    { name: '11-20 депозитов', value: data.filter(c => c.total_deposit >= 11 && c.total_deposit <= 20).length, color: '#8B5CF6' },
+    { name: '20+ депозитов', value: data.filter(c => c.total_deposit > 20).length, color: '#06B6D4' }
   ].filter(item => item.value > 0);
 
-  // Анализ удержания
+  // Анализ риска оттока
+  const churnRisk = calculateChurnRisk(data);
   const activeClients = data.filter(client => client.avg_activity > 0).length;
   const avgInactiveDays = data.reduce((sum, client) => sum + client.avg_inactive_days, 0) / data.length;
-  const churnRate = ((totalClients - activeClients) / totalClients) * 100;
+  
+  // Реальный churn rate на основе лога оттока
+  const realChurnRate = (churnRisk.highRisk / totalClients) * 100;
 
   const retentionBySegment: ChartDataPoint[] = segments.map(segment => ({
     name: segment.segment,
@@ -195,9 +243,17 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
     count: segment.count
   }));
 
+  // Анализ риска оттока для визуализации
+  const churnRiskDistribution: ChartDataPoint[] = [
+    { name: 'Низкий риск', value: churnRisk.lowRisk, color: '#10B981' },
+    { name: 'Средний риск', value: churnRisk.mediumRisk, color: '#F59E0B' },
+    { name: 'Высокий риск', value: churnRisk.highRisk, color: '#EF4444' }
+  ];
+
   return {
     totalClients,
     segments: segments.sort((a, b) => b.count - a.count),
+    wealthSegments: wealthSegments.sort((a, b) => b.avgDeposit - a.avgDeposit),
     marketingChannels,
     activityLevels,
     onboardingStats,
@@ -209,9 +265,10 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
     },
     retentionAnalysis: {
       activeClients,
-      churnRate,
+      churnRate: realChurnRate,
       avgInactiveDays,
-      retentionBySegment
+      retentionBySegment,
+      churnRiskDistribution
     }
   };
 };
