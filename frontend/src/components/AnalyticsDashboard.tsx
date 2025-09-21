@@ -91,7 +91,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
     );
   }
 
-  const genderData = data.demographics.gender.map((item, index) => ({
+  const genderData = data.demographics.gender.map((item) => ({
     ...item,
     color: item.name.includes('Мужчин') || item.name.includes('М') ? '#3B82F6' : 
            item.name.includes('Женщин') || item.name.includes('Ж') ? '#EC4899' : '#6B7280'

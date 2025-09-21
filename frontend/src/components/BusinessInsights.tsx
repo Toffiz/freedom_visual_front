@@ -5,8 +5,7 @@ import {
   TrendingUp, 
   AlertTriangle, 
   Target, 
-  Users, 
-  DollarSign,
+  Users,
   Brain,
   Zap
 } from 'lucide-react';
@@ -100,7 +99,8 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
     setIsLoadingAI(true);
     
     try {
-      const prompt = `
+      // TODO: Интеграция с OpenRouter API для AI инсайтов
+      /* const prompt = `
 Анализируй данные клиентской аналитики и дай 3 конкретные бизнес-рекомендации:
 
 Данные:
@@ -122,7 +122,7 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
     }
   ]
 }
-`;
+`; */
 
       // В реальном проекте здесь был бы запрос к OpenRouter API
       // Пока создадим умные инсайты на основе данных
