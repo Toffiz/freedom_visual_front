@@ -138,10 +138,19 @@ ${JSON.stringify(analyticsData, null, 2)}
   ]
 }`;
 
+      // Проверяем доступность API ключа
+      const apiKey = (import.meta as any).env?.VITE_OPENROUTER_KEY || 
+                    (window as any).__VITE_OPENROUTER_KEY__;
+      
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_openrouter_api_key_here')) {
+        console.warn('OpenRouter API key not available, using fallback insights');
+        throw new Error('API key not configured');
+      }
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${(window as any).VITE_OPENROUTER_KEY || 'KEY'}`,
+          "Authorization": `Bearer ${apiKey}`,
           "HTTP-Referer": window.location.origin,
           "X-Title": "Freedom Analytics Dashboard",
           "Content-Type": "application/json"
@@ -187,36 +196,38 @@ ${JSON.stringify(analyticsData, null, 2)}
       }
     } catch (error) {
       console.error('Error generating AI insights:', error);
-      // Фоллбэк на случай ошибки API
+      // Улучшенные фоллбэк инсайты на основе реальных данных
       const fallbackInsights: Insight[] = [
         {
           id: 'ai-fallback-1',
           type: 'info',
           icon: <Brain className="h-5 w-5" />,
-          title: 'Оптимизация маркетингового микса',
-          description: 'AI анализ показывает неравномерное распределение клиентов по каналам',
-          recommendation: 'Увеличьте инвестиции в недопредставленные, но эффективные каналы',
+          title: 'Оптимизация маркетинговых каналов',
+          description: `Анализ показывает неравномерное распределение: топ-канал приносит ${data.marketingChannels[0]?.percentage.toFixed(1)}% клиентов`,
+          recommendation: 'Диверсифицируйте источники трафика и увеличьте инвестиции в недооцененные каналы',
           impact: 'high',
           aiGenerated: true
         },
         {
           id: 'ai-fallback-2',
-          type: 'success',
+          type: data.retentionAnalysis.churnRate > 25 ? 'warning' : 'success',
           icon: <Zap className="h-5 w-5" />,
-          title: 'Персонализация клиентского опыта',
-          description: 'Данные сегментации указывают на возможности для таргетированных кампаний',
-          recommendation: 'Создайте персонализированные продуктовые предложения для каждого сегмента',
-          impact: 'medium',
+          title: 'Программа удержания клиентов',
+          description: `Текущий риск оттока ${data.retentionAnalysis.churnRate.toFixed(1)}% ${data.retentionAnalysis.churnRate > 25 ? 'превышает' : 'находится в пределах'} нормы`,
+          recommendation: data.retentionAnalysis.churnRate > 25 ? 
+            'Внедрите проактивные меры удержания и персонализированные предложения' :
+            'Поддерживайте текущий уровень клиентского сервиса',
+          impact: data.retentionAnalysis.churnRate > 25 ? 'high' : 'medium',
           aiGenerated: true
         },
         {
           id: 'ai-fallback-3',
-          type: 'warning',
+          type: 'success',
           icon: <Target className="h-5 w-5" />,
-          title: 'Программа удержания клиентов',
-          description: 'AI модель предсказывает риски оттока в определенных сегментах',
-          recommendation: 'Внедрите проактивную систему удержания с predictive analytics',
-          impact: 'high',
+          title: 'Сегментация и персонализация',
+          description: `Выявлено ${data.wealthSegments.length} сегментов богатства с разной активностью`,
+          recommendation: 'Создайте персонализированные продуктовые предложения для каждого сегмента',
+          impact: 'medium',
           aiGenerated: true
         }
       ];
