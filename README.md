@@ -1,180 +1,174 @@
-# Freedom Visual - Beautiful Visual Presentation Platform
+# Freedom Client Analytics 📊
 
-A modern, beautiful web application for uploading, managing, and presenting your visual content with an elegant frontend and robust backend.
+Мощная система визуализации и анализа клиентских данных для построения детальных портретов пользователей. Создана для хакатона Freedom.
 
-![Freedom Visual](https://img.shields.io/badge/status-ready-green) ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![Tailwind](https://img.shields.io/badge/Tailwind-3-blue)
+![Analytics](https://img.shields.io/badge/Analytics-Ready-green) ![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Recharts](https://img.shields.io/badge/Recharts-2.8-orange) ![Tailwind](https://img.shields.io/badge/Tailwind-4-blue)
 
-## ✨ Features
+## 🎯 Основные возможности
 
-### 🎨 Beautiful Frontend
-- **Modern React Interface**: Built with React 18 + TypeScript + Vite
-- **Responsive Design**: Beautiful UI that works on all devices
-- **Dark/Light Theme**: Toggle between themes with smooth transitions  
-- **Grid & List Views**: Multiple ways to browse your images
-- **Drag & Drop Upload**: Intuitive file upload experience
-- **Real-time Search**: Search by filename, description, or tags
-- **Image Lightbox**: Full-screen image viewing with metadata
-- **Professional Styling**: Clean design with Tailwind CSS and custom animations
+### 📈 Визуализация данных
+- **Интерактивные графики**: Bar charts, Pie charts, Line charts с анимациями
+- **Умные инсайты**: Автоматический анализ и рекомендации
+- **Сегментация клиентов**: По депозитам, активности, демографии
+- **Маркетинговая аналитика**: Анализ эффективности каналов привлечения
 
-### 🚀 Robust Backend
-- **Node.js + Express**: Fast, scalable RESTful API
-- **TypeScript**: Type-safe server-side code
-- **Image Processing**: Automatic optimization with Sharp
-- **SQLite Database**: Simple, reliable data storage
-- **File Management**: Smart upload handling and organization
-- **Metadata Extraction**: Automatic image analysis
-- **Security Features**: CORS, Helmet, compression, and input validation
+### 🎨 Современный интерфейс  
+- **Темная/светлая тема**: Переключение с плавными переходами
+- **Responsive дизайн**: Адаптация под все устройства
+- **Анимации**: Framer Motion для плавных переходов
+- **Интуитивный UI**: Продуманный пользовательский опыт
 
-### 📸 Image Management
-- **Multi-file Upload**: Upload multiple images at once
-- **Smart Processing**: Automatic WebP conversion for optimal performance
-- **Tagging System**: Organize images with custom tags
-- **Descriptions**: Add rich descriptions to your images
-- **Download Support**: Easy image downloading
-- **Deletion Management**: Clean removal with confirmation
+### � Работа с данными
+- **CSV загрузка**: Простая загрузка данных через drag & drop
+- **Валидация**: Проверка структуры и качества данных
+- **Большие датасеты**: Обработка файлов с тысячами записей
+- **Автоматический анализ**: Мгновенное построение портретов
 
-## 🚀 Quick Start
+## 🚀 Быстрый старт
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
+### Просмотр демо
+Посетите: **https://toffiz.github.io/freedom_visual_front/**
 
-### Installation
+### Локальная разработка
 
-1. **Clone the repository**
-   \`\`\`bash
-   git clone <repository-url>
-   cd freedom-visual-front
-   \`\`\`
+1. **Клонирование репозитория**
+   ```bash
+   git clone https://github.com/Toffiz/freedom_visual_front.git
+   cd freedom_visual_front/frontend
+   ```
 
-2. **Install dependencies**
-   \`\`\`bash
-   npm run install:all
-   \`\`\`
+2. **Установка зависимостей**
+   ```bash
+   npm install
+   ```
 
-3. **Start development servers**
-   \`\`\`bash
+3. **Запуск dev сервера**
+   ```bash
    npm run dev
-   \`\`\`
+   ```
 
-   This starts both backend (port 3001) and frontend (port 5173) concurrently.
+## 📊 Поддерживаемые метрики
 
-4. **Open your browser**
-   Visit [http://localhost:5173](http://localhost:5173)
+### Клиентские данные
+- `original_client_user_id` - ID клиента
+- `total_deposit` - Общий депозит  
+- `avg_activity` - Средняя активность
+- `avg_inactive_days` - Дни неактивности
+- `client_onboarded_any` - Статус онбординга
 
-## 📱 Usage
+### Демографические данные
+- `sex_type_*` - Пол клиента
+- `age_segment_*` - Возрастная группа
 
-1. **Upload Images**: Click the "Upload" button or drag & drop files
-2. **Add Metadata**: Include descriptions and tags for better organization  
-3. **Browse Collection**: Switch between grid and list views
-4. **Search & Filter**: Find images quickly using the search bar
-5. **View Details**: Click any image to open the detailed lightbox view
-6. **Manage Images**: Download or delete images as needed
+### Маркетинговые каналы
+- `Маркетинг KZ - Блоггеры - *`
+- `Маркетинг KZ - Лендинг - *`
+- `Маркетинг KZ - Рекламные Кабинеты - *`
+- `Маркетинг KZ - Реферальные - *`
+- `Органика`, `Рефералка Sales`, `Банк`, `Белиз`
 
-## 🏗️ Project Structure
+## 📈 Виды анализа
 
-\`\`\`
-freedom-visual-front/
-├── backend/                 # Node.js + Express API
-│   ├── src/
-│   │   ├── routes/         # API route handlers
-│   │   ├── database/       # Database setup and models
-│   │   ├── types/          # TypeScript type definitions
-│   │   └── index.ts        # Server entry point
-│   ├── uploads/            # Image storage directory
-│   └── package.json
-├── frontend/               # React + TypeScript frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── types.ts        # Type definitions
-│   │   ├── App.tsx         # Main app component
-│   │   └── main.tsx        # Entry point
-│   └── package.json
-└── package.json           # Root package.json with dev scripts
-\`\`\`
+### 1. Сегментация клиентов
+- **По депозитам**: Без депозитов, Микро, Малые, Средние, Крупные, VIP
+- **По активности**: Неактивные, Низкая, Средняя, Высокая, Очень высокая
+- **По демографии**: Пол и возрастные группы
 
-## 🛠️ Development
+### 2. Маркетинговая эффективность
+- Количество клиентов по каналам
+- Конверсия в онбординг
+- Средний LTV по каналам
+- Диверсификация источников
 
-### Available Scripts
+### 3. Бизнес-инсайты
+- Автоматические рекомендации
+- Выявление проблем в воронке
+- Анализ удержания клиентов
+- KPI мониторинг
 
-- \`npm run dev\` - Start both frontend and backend in development mode
-- \`npm run dev:frontend\` - Start only the frontend dev server
-- \`npm run dev:backend\` - Start only the backend dev server
-- \`npm run build\` - Build both frontend and backend for production
-- \`npm run lint\` - Run ESLint on both projects
-- \`npm start\` - Start the production backend server
+## 🛠️ Технологический стек
 
-### API Endpoints
+### Frontend
+- **React 19** - Современный UI фреймворк
+- **TypeScript** - Типизация для надежности
+- **Tailwind CSS** - Utility-first стилизация
+- **Framer Motion** - Плавные анимации
+- **Recharts** - Библиотека графиков
+- **PapaParse** - CSV парсинг
+- **Vite** - Быстрая сборка
 
-- \`GET /api/images\` - Get paginated list of images
-- \`GET /api/images/:id\` - Get specific image details
-- \`POST /api/images/upload\` - Upload new images
-- \`DELETE /api/images/:id\` - Delete an image
-- \`GET /api/health\` - Health check endpoint
+### Аналитика
+- **D3.js** - Продвинутые визуализации
+- **Автоматические инсайты** - ИИ-подобная логика анализа
+- **Кластеризация** - Умная сегментация
+- **Статистический анализ** - Математические расчеты
 
-### Environment Variables
+## 📁 Структура проекта
 
-Create a \`.env\` file in the backend directory:
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── AnalyticsDashboard.tsx    # Основной дашборд
+│   │   ├── BusinessInsights.tsx       # Бизнес-инсайты
+│   │   └── CSVUploader.tsx           # Загрузчик CSV
+│   ├── utils/
+│   │   └── analytics.ts              # Логика анализа
+│   ├── types/
+│   │   └── analytics.ts              # Типы данных
+│   └── App.tsx                       # Главный компонент
+├── public/
+└── package.json
+```
 
-\`\`\`env
-PORT=3001
-NODE_ENV=development
-\`\`\`
+## 🎨 Методология анализа
 
-## 🎨 Customization
+### Построение портрета клиента
 
-### Styling
-The frontend uses Tailwind CSS with custom animations and components defined in:
-- \`frontend/src/index.css\` - Global styles and custom classes
-- \`frontend/tailwind.config.js\` - Tailwind configuration
+1. **Сбор данных** - Импорт CSV с клиентскими метриками
+2. **Очистка и валидация** - Проверка качества данных
+3. **Сегментация** - Автоматическое разделение на группы
+4. **Анализ поведения** - Изучение активности и вовлеченности  
+5. **Маркетинговый анализ** - Оценка эффективности каналов
+6. **Генерация инсайтов** - Автоматические рекомендации
 
-### Backend Configuration  
-- Database: SQLite (easily switchable to PostgreSQL/MySQL)
-- File Storage: Local filesystem (easily extensible to cloud storage)
-- Image Processing: Sharp library for optimization
+### Ключевые метрики
+- **CAC** (Customer Acquisition Cost) - По каналам
+- **LTV** (Lifetime Value) - Средний по сегментам
+- **Churn Rate** - Процент оттока
+- **Конверсия онбординга** - Эффективность воронки
+- **ARPU** (Average Revenue Per User) - По сегментам
 
-## 🚀 Deployment
+## 🚀 Деплой
 
-### Docker (Recommended)
+### GitHub Pages (автоматический)
+Проект автоматически деплоится на GitHub Pages при пуше в ветку `main` или `super`.
 
-Create a Dockerfile in the root directory and deploy using your preferred container platform.
+### Ручной деплой
+```bash
+npm run build
+npm run preview
+```
 
-### Traditional Deployment
+## 📊 Пример использования
 
-1. **Build the projects**
-   \`\`\`bash
-   npm run build
-   \`\`\`
+1. **Подготовьте CSV файл** с клиентскими данными
+2. **Откройте приложение** по ссылке выше
+3. **Загрузите файл** через кнопку "Load CSV"
+4. **Изучайте дашборд** с автоматически построенными графиками
+5. **Читайте инсайты** и рекомендации для бизнеса
 
-2. **Configure production environment**
-   - Set NODE_ENV=production
-   - Configure reverse proxy (nginx/Apache)
-   - Set up SSL certificates
+## 🏆 Для хакатона Freedom
 
-3. **Start the production server**
-   \`\`\`bash
-   npm start
-   \`\`\`
+Этот проект создан специально для демонстрации навыков в области:
+- **Data Science** - Анализ больших объемов данных
+- **Frontend разработки** - Современный React + TypeScript
+- **UX/UI дизайна** - Интуитивный интерфейс
+- **Бизнес-аналитики** - Практические инсайты и рекомендации
 
-## 🤝 Contributing
+## � Контакты
 
-1. Fork the repository
-2. Create a feature branch (\`git checkout -b feature/amazing-feature\`)
-3. Commit your changes (\`git commit -m 'Add amazing feature'\`)
-4. Push to the branch (\`git push origin feature/amazing-feature\`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- Tailwind CSS for the utility-first styling approach
-- Sharp for excellent image processing capabilities
-- The open-source community for all the great tools and libraries
+Создано для хакатона **Freedom** 2025
 
 ---
-
-**Built with ❤️ for beautiful visual presentations**
+**Сделано с 💙 для анализа клиентских данных**

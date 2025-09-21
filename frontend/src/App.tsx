@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Grid, List, Moon, Sun } from 'lucide-react';
-import ImageGallery from './components/ImageGallery';
-import ImageUpload from './components/ImageUpload';
-import SearchBar from './components/SearchBar';
-import type { Image } from './types';
+import { BarChart3, Moon, Sun, FileText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CSVUploader from './components/CSVUploader';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { analyzeClientData } from './utils/analytics';
+import type { ClientData, ClientPortrait } from './types/analytics';
 import './App.css';
 
 function App() {
-  const [images, setImages] = useState<Image[]>([]);
-  const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showUpload, setShowUpload] = useState(false);
+  const [showCSVUploader, setShowCSVUploader] = useState(false);
+  const [clientData, setClientData] = useState<ClientData[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<ClientPortrait | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   useEffect(() => {
     // Check for saved dark mode preference
@@ -20,7 +20,6 @@ function App() {
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
     }
-    fetchImages();
   }, []);
 
   useEffect(() => {
@@ -33,26 +32,18 @@ function App() {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
-  const fetchImages = async () => {
+  const handleCSVData = async (data: ClientData[]) => {
+    setAnalyticsLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch('http://localhost:3001/api/images');
-      if (response.ok) {
-        const data = await response.json();
-        setImages(data.images);
-      }
+      setClientData(data);
+      const portrait = analyzeClientData(data);
+      setAnalyticsData(portrait);
     } catch (error) {
-      console.error('Failed to fetch images:', error);
+      console.error('Error analyzing data:', error);
     } finally {
-      setLoading(false);
+      setAnalyticsLoading(false);
     }
   };
-
-  const filteredImages = images.filter(image =>
-    image.originalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    image.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    image.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -61,44 +52,15 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <ImageIcon className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Freedom Visual
-              </h1>
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="h-8 w-8 text-blue-600" />
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Freedom Client Analytics
+                </h1>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Search Bar */}
-              <SearchBar 
-                value={searchTerm}
-                onChange={setSearchTerm}
-                placeholder="Search images..."
-              />
-              
-              {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded ${
-                    viewMode === 'grid'
-                      ? 'bg-white dark:bg-gray-600 shadow-sm'
-                      : 'hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <Grid className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded ${
-                    viewMode === 'list'
-                      ? 'bg-white dark:bg-gray-600 shadow-sm'
-                      : 'hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <List className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-                </button>
-              </div>
-              
               {/* Dark Mode Toggle */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
@@ -111,13 +73,13 @@ function App() {
                 )}
               </button>
               
-              {/* Upload Button */}
+              {/* Load CSV Button */}
               <button
-                onClick={() => setShowUpload(!showUpload)}
+                onClick={() => setShowCSVUploader(!showCSVUploader)}
                 className="btn-primary flex items-center space-x-2"
               >
-                <Upload className="h-5 w-5" />
-                <span>Upload</span>
+                <FileText className="h-5 w-5" />
+                <span>Load CSV</span>
               </button>
             </div>
           </div>
@@ -126,49 +88,74 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Upload Section */}
-        {showUpload && (
-          <div className="mb-8 animate-slide-up">
-            <ImageUpload
-              onUploadComplete={() => {
-                fetchImages();
-                setShowUpload(false);
+        <AnimatePresence mode="wait">
+          {/* CSV Uploader Modal */}
+          {showCSVUploader && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setShowCSVUploader(false);
+                }
               }}
-              onCancel={() => setShowUpload(false)}
-            />
-          </div>
-        )}
+            >
+              <CSVUploader
+                onDataLoaded={handleCSVData}
+                onClose={() => setShowCSVUploader(false)}
+              />
+            </motion.div>
+          )}
 
-        {/* Stats */}
-        <div className="mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Your Visual Collection
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {filteredImages.length} of {images.length} images
-                  {searchTerm && ` matching "${searchTerm}"`}
+          {/* Analytics Content */}
+          {analyticsData ? (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <AnalyticsDashboard data={analyticsData} loading={analyticsLoading} />
+            </motion.div>
+          ) : (
+            <div className="text-center py-16">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-12 shadow-lg"
+              >
+                <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  Загрузите данные клиентов
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                  Загрузите CSV файл с данными клиентов, чтобы начать анализ и построить 
+                  портреты пользователей для хакатона Freedom.
                 </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-blue-600">
-                  {images.length}
-                </p>
-                <p className="text-sm text-gray-500">Total Images</p>
-              </div>
+                <button
+                  onClick={() => setShowCSVUploader(true)}
+                  className="btn-primary flex items-center space-x-2 mx-auto"
+                >
+                  <FileText className="h-5 w-5" />
+                  <span>Загрузить CSV</span>
+                </button>
+                
+                {/* Sample Data Info */}
+                <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                    Ожидаемые колонки в CSV:
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    original_client_user_id, total_deposit, avg_activity, sex_type_*, age_segment_*, 
+                    маркетинговые каналы и другие метрики активности клиентов
+                  </p>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-
-        {/* Image Gallery */}
-        <ImageGallery
-          images={filteredImages}
-          loading={loading}
-          viewMode={viewMode}
-          onImageDeleted={fetchImages}
-        />
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
