@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
 import { Upload, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
 import Papa from 'papaparse';
-import { ClientData } from '../types/analytics';
+import type { ClientData } from '../types/analytics';
 
 interface CSVUploaderProps {
   onDataLoaded: (data: ClientData[]) => void;

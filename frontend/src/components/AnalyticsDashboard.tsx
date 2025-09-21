@@ -11,16 +11,11 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter,
-  Treemap
+  ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, Users, DollarSign, Activity, Target } from 'lucide-react';
 import BusinessInsights from './BusinessInsights';
-import type { ClientPortrait, ChartDataPoint } from '../types/analytics';
+import type { ClientPortrait } from '../types/analytics';
 
 interface AnalyticsDashboardProps {
   data: ClientPortrait;
@@ -265,14 +260,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="count"
-                label={({ name, count, range }) => `${name}: ${count}`}
+                label={({ name, count }) => `${name}: ${count}`}
               >
                 {activityData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value, name, props) => [
+                formatter={(value, _, props) => [
                   `${value} клиентов`, 
                   `${props.payload.name} (${props.payload.range})`
                 ]} 

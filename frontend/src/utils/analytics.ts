@@ -161,7 +161,6 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
   const marketingChannels = extractMarketingChannels(data);
 
   // Статистика онбординга
-  const onboardedClients = data.filter(client => client.client_onboarded_any);
   const startedOnboarding = data.filter(client => client.any_started_onboarding > 0);
   const completedOnboarding = data.filter(client => client.any_completed_onboarding > 0);
 

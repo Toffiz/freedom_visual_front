@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, Moon, Sun, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CSVUploader from './components/CSVUploader';
