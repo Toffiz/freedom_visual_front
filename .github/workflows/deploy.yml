@@ -40,6 +40,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          VITE_OPENROUTER_KEY: ${{ secrets.KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

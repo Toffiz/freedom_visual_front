@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Users, DollarSign, Activity, Target } from 'lucide-react';
 import BusinessInsights from './BusinessInsights';
+import OnboardingFunnel from './OnboardingFunnel';
 import type { ClientPortrait } from '../types/analytics';
 
 interface AnalyticsDashboardProps {
@@ -368,6 +369,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
 
       {/* Business Insights */}
       <BusinessInsights data={data} />
+
+      {/* Onboarding Funnel */}
+      <OnboardingFunnel data={data} />
     </div>
   );
 };

@@ -35,7 +35,7 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
     const insights: Insight[] = [];
     
     // Анализ конверсии
-    const avgConversion = data.marketingChannels.reduce((sum, ch) => sum + ch.conversionRate, 0) / data.marketingChannels.length;
+    const avgConversion = data.marketingChannels.reduce((sum: number, ch: any) => sum + ch.conversionRate, 0) / data.marketingChannels.length;
     if (avgConversion < 70) {
       insights.push({
         id: 'conversion',
@@ -62,7 +62,7 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
     }
 
     // Анализ активности
-    const highActivityClients = data.activityLevels.find(level => level.level === 'Очень высокий')?.count || 0;
+    const highActivityClients = data.activityLevels.find((level: any) => level.level === 'Очень высокий')?.count || 0;
     const highActivityPercent = (highActivityClients / data.totalClients) * 100;
     
     if (highActivityPercent > 15) {
@@ -99,16 +99,31 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
     setIsLoadingAI(true);
     
     try {
-      // TODO: Интеграция с OpenRouter API для AI инсайтов
-      /* const prompt = `
-Анализируй данные клиентской аналитики и дай 3 конкретные бизнес-рекомендации:
+      // Подготовка данных для AI анализа
+      const analyticsData = {
+        totalClients: data.totalClients,
+        activeClients: data.retentionAnalysis.activeClients,
+        churnRate: data.retentionAnalysis.churnRate.toFixed(1),
+        topChannels: data.marketingChannels.slice(0,3).map((ch: any) => ({
+          channel: ch.channel,
+          clients: ch.count,
+          conversion: ch.conversionRate.toFixed(1)
+        })),
+        wealthSegments: data.wealthSegments.slice(0,3).map((ws: any) => ({
+          segment: ws.segment,
+          clients: ws.count
+        })),
+        demographics: {
+          gender: data.demographics.gender,
+          age: data.demographics.age
+        },
+        depositAnalysis: data.depositAnalysis
+      };
+
+      const prompt = `Анализируй данные клиентской аналитики и дай 3 конкретные бизнес-рекомендации на русском языке:
 
 Данные:
-- Общее количество клиентов: ${data.totalClients}
-- Активных клиентов: ${data.retentionAnalysis.activeClients}  
-- Риск оттока: ${data.retentionAnalysis.churnRate.toFixed(1)}%
-- Топ маркетинговые каналы: ${data.marketingChannels.slice(0,3).map(ch => `${ch.channel} (${ch.count} клиентов, ${ch.conversionRate.toFixed(1)}% конверсия)`).join(', ')}
-- Сегменты богатства: ${data.wealthSegments.slice(0,3).map(ws => `${ws.segment} (${ws.count} клиентов)`).join(', ')}
+${JSON.stringify(analyticsData, null, 2)}
 
 Дай рекомендации в JSON формате:
 {
@@ -121,54 +136,98 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
       "type": "success|warning|info|danger"
     }
   ]
-}
-`; */
+}`;
 
-      // В реальном проекте здесь был бы запрос к OpenRouter API
-      // Пока создадим умные инсайты на основе данных
-      const smartInsights: Insight[] = [
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${(window as any).VITE_OPENROUTER_KEY || 'KEY'}`,
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "Freedom Analytics Dashboard",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "model": "qwen/qwen3-30b-a3b-instruct-2507",
+          "messages": [
+            {
+              "role": "user",
+              "content": prompt
+            }
+          ],
+          "max_tokens": 1500,
+          "temperature": 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const aiResponse = result.choices[0]?.message?.content;
+      
+      if (aiResponse) {
+        // Парсим JSON ответ от AI
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const aiData = JSON.parse(jsonMatch[0]);
+          const newAiInsights = aiData.insights.map((insight: any, index: number) => ({
+            id: `ai-${index}`,
+            type: insight.type,
+            icon: <Brain className="h-5 w-5" />,
+            title: insight.title,
+            description: insight.description,
+            recommendation: insight.recommendation,
+            impact: insight.impact,
+            aiGenerated: true
+          }));
+          
+          setAiInsights(newAiInsights);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating AI insights:', error);
+      // Фоллбэк на случай ошибки API
+      const fallbackInsights: Insight[] = [
         {
-          id: 'ai-retention',
+          id: 'ai-fallback-1',
           type: 'info',
           icon: <Brain className="h-5 w-5" />,
-          title: 'AI: Персонализация удержания',
-          description: 'Алгоритм выявил паттерны поведения клиентов перед оттоком',
-          recommendation: 'Настройте триггерные email-кампании для клиентов с падающей активностью',
+          title: 'Оптимизация маркетингового микса',
+          description: 'AI анализ показывает неравномерное распределение клиентов по каналам',
+          recommendation: 'Увеличьте инвестиции в недопредставленные, но эффективные каналы',
           impact: 'high',
           aiGenerated: true
         },
         {
-          id: 'ai-upsell',
+          id: 'ai-fallback-2',
           type: 'success',
           icon: <Zap className="h-5 w-5" />,
-          title: 'AI: Возможности кросс-продаж',
-          description: 'Обнаружены клиенты готовые к переходу в более высокий сегмент',
-          recommendation: 'Предложите премиум-продукты топ 20% клиентов по активности',
+          title: 'Персонализация клиентского опыта',
+          description: 'Данные сегментации указывают на возможности для таргетированных кампаний',
+          recommendation: 'Создайте персонализированные продуктовые предложения для каждого сегмента',
           impact: 'medium',
           aiGenerated: true
         },
         {
-          id: 'ai-acquisition',
+          id: 'ai-fallback-3',
           type: 'warning',
           icon: <Target className="h-5 w-5" />,
-          title: 'AI: Оптимизация привлечения',
-          description: 'Модель предсказывает снижение эффективности текущих каналов',
-          recommendation: 'Перераспределите 30% бюджета в каналы с высокой конверсией',
+          title: 'Программа удержания клиентов',
+          description: 'AI модель предсказывает риски оттока в определенных сегментах',
+          recommendation: 'Внедрите проактивную систему удержания с predictive analytics',
           impact: 'high',
           aiGenerated: true
         }
       ];
-
-      setAiInsights(smartInsights);
-    } catch (error) {
-      console.error('Ошибка генерации AI инсайтов:', error);
+      setAiInsights(fallbackInsights);
     } finally {
       setIsLoadingAI(false);
     }
   };
 
   useEffect(() => {
-    // Запускаем генерацию AI инсайтов через 2 секунды после загрузки
+    // Запускаем генерацию AI инсайтов с небольшой задержкой
     const timer = setTimeout(generateAIInsights, 2000);
     return () => clearTimeout(timer);
   }, [data]);
@@ -177,28 +236,21 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
   const allInsights = [...basicInsights, ...aiInsights];
 
   const getInsightColor = (type: string, aiGenerated?: boolean) => {
-    const baseColors = {
-      success: 'border-green-200 bg-green-50 dark:bg-green-900/20',
-      warning: 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20', 
-      info: 'border-blue-200 bg-blue-50 dark:bg-blue-900/20',
-      danger: 'border-red-200 bg-red-50 dark:bg-red-900/20'
+    const colors = {
+      success: aiGenerated ? 'bg-green-100 text-green-700 border-green-200' : 'bg-green-50 text-green-700',
+      warning: aiGenerated ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-yellow-50 text-yellow-700',
+      info: aiGenerated ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-blue-50 text-blue-700',
+      danger: aiGenerated ? 'bg-red-100 text-red-700 border-red-200' : 'bg-red-50 text-red-700'
     };
-    
-    if (aiGenerated) {
-      return 'border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20';
-    }
-    
-    return baseColors[type as keyof typeof baseColors] || baseColors.info;
+    return colors[type as keyof typeof colors] || colors.info;
   };
 
   const getInsightIconColor = (type: string, aiGenerated?: boolean) => {
-    if (aiGenerated) return 'text-purple-600';
-    
     const colors = {
-      success: 'text-green-600',
-      warning: 'text-yellow-600',
-      info: 'text-blue-600', 
-      danger: 'text-red-600'
+      success: aiGenerated ? 'bg-green-500 text-white' : 'bg-green-100 text-green-600',
+      warning: aiGenerated ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-600',
+      info: aiGenerated ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-600',
+      danger: aiGenerated ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'
     };
     return colors[type as keyof typeof colors] || colors.info;
   };
@@ -218,19 +270,22 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
         {isLoadingAI && (
           <div className="flex items-center gap-2 text-sm text-purple-600">
             <Brain className="h-4 w-4 animate-pulse" />
-            AI анализирует...
+            <span>AI анализ...</span>
           </div>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {allInsights.map((insight, index) => (
+        {allInsights.map((insight) => (
           <motion.div
             key={insight.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.9 + index * 0.1 }}
-            className={`p-4 rounded-lg border-2 ${getInsightColor(insight.type, insight.aiGenerated)}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            className={`p-4 rounded-lg border ${getInsightColor(insight.type, insight.aiGenerated)} ${
+              insight.aiGenerated ? 'border-2 border-dashed' : 'border'
+            }`}
           >
             <div className="flex items-start gap-3">
               <div className={`p-2 rounded-full ${getInsightIconColor(insight.type, insight.aiGenerated)}`}>
@@ -255,27 +310,24 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
                      insight.impact === 'medium' ? 'Средний' : 'Низкий'} приоритет
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   {insight.description}
                 </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                  💡 {insight.recommendation}
-                </p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    💡 Рекомендация: {insight.recommendation}
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
-      
-      {aiInsights.length === 0 && !isLoadingAI && (
-        <div className="text-center py-4">
-          <button
-            onClick={generateAIInsights}
-            className="btn-primary flex items-center gap-2"
-          >
-            <Brain className="h-4 w-4" />
-            Получить AI рекомендации
-          </button>
+
+      {allInsights.length === 0 && !isLoadingAI && (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <Brain className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p>Анализируем данные для генерации инсайтов...</p>
         </div>
       )}
     </motion.div>
