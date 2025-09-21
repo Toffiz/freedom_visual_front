@@ -76,13 +76,6 @@ export interface ClientSegment {
   avgActivity: number;
 }
 
-export interface MarketingChannel {
-  channel: string;
-  count: number;
-  percentage: number;
-  conversionRate: number;
-  avgLTV: number;
-}
 
 export interface ActivityLevel {
   level: string;
@@ -110,7 +103,6 @@ export interface ClientPortrait {
   totalClients: number;
   segments: ClientSegment[];
   wealthSegments: ClientSegment[];
-  marketingChannels: MarketingChannel[];
   activityLevels: ActivityLevel[];
   onboardingStats: OnboardingStats;
   demographics: {

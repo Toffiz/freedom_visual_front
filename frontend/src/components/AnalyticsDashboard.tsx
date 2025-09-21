@@ -15,7 +15,6 @@ import {
 } from 'recharts';
 import { TrendingUp, Users, DollarSign, Activity, Target } from 'lucide-react';
 import BusinessInsights from './BusinessInsights';
-import OnboardingFunnel from './OnboardingFunnel';
 import type { ClientPortrait } from '../types/analytics';
 
 interface AnalyticsDashboardProps {
@@ -207,39 +206,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
         </motion.div>
       </div>
 
-      {/* Marketing Channels */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
-      >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-          Эффективность маркетинговых каналов
-        </h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={data.marketingChannels.slice(0, 10)} layout="horizontal">
-            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-            <XAxis type="number" tick={{ fill: '#6B7280' }} />
-            <YAxis 
-              type="category" 
-              dataKey="channel" 
-              tick={{ fill: '#6B7280', fontSize: 11 }}
-              width={200}
-            />
-            <Tooltip 
-              formatter={(value, name) => [
-                name === 'count' ? `${value} клиентов` : 
-                name === 'conversionRate' ? `${value}% конверсия` :
-                name === 'avgLTV' ? `${value} LTV` : value
-              ]}
-            />
-            <Legend />
-            <Bar dataKey="count" fill="#3B82F6" name="Количество клиентов" />
-            <Bar dataKey="conversionRate" fill="#10B981" name="Конверсия %" />
-          </BarChart>
-        </ResponsiveContainer>
-      </motion.div>
 
       {/* Activity and Churn Risk */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -368,10 +334,26 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading =
       </motion.div>
 
       {/* Business Insights */}
-      <BusinessInsights data={data} />
+        <BusinessInsights data={data} />
 
-      {/* Onboarding Funnel */}
-      <OnboardingFunnel data={data} />
+        {/* Voronka Image */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+        >
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            Воронка конверсии
+          </h3>
+          <div className="flex justify-center">
+            <img 
+              src="/voronka.png" 
+              alt="Воронка конверсии" 
+              className="max-w-full h-auto rounded-lg shadow-md"
+            />
+          </div>
+        </motion.div>
     </div>
   );
 };

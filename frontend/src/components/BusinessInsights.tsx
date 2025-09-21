@@ -5,7 +5,6 @@ import {
   TrendingUp, 
   AlertTriangle, 
   Target, 
-  Users,
   Brain,
   Zap
 } from 'lucide-react';
@@ -34,19 +33,6 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
   const getBasicInsights = (): Insight[] => {
     const insights: Insight[] = [];
     
-    // Анализ конверсии
-    const avgConversion = data.marketingChannels.reduce((sum: number, ch: any) => sum + ch.conversionRate, 0) / data.marketingChannels.length;
-    if (avgConversion < 70) {
-      insights.push({
-        id: 'conversion',
-        type: 'warning',
-        icon: <Target className="h-5 w-5" />,
-        title: 'Низкая конверсия маркетинговых каналов',
-        description: `Средняя конверсия составляет ${avgConversion.toFixed(1)}%, что ниже среднерыночной`,
-        recommendation: 'Оптимизируйте воронки продаж и улучшите таргетинг',
-        impact: 'high'
-      });
-    }
 
     // Анализ риска оттока
     if (data.retentionAnalysis.churnRate > 20) {
@@ -77,19 +63,6 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
       });
     }
 
-    // Анализ каналов
-    const topChannel = data.marketingChannels[0];
-    if (topChannel && topChannel.percentage > 40) {
-      insights.push({
-        id: 'channels',
-        type: 'warning',
-        icon: <Users className="h-5 w-5" />,
-        title: 'Зависимость от одного канала',
-        description: `${topChannel.channel} приносит ${topChannel.percentage.toFixed(1)}% клиентов`,
-        recommendation: 'Диверсифицируйте маркетинговые каналы для снижения рисков',
-        impact: 'medium'
-      });
-    }
 
     return insights;
   };
@@ -104,11 +77,6 @@ const BusinessInsights: React.FC<BusinessInsightsProps> = ({ data }) => {
         totalClients: data.totalClients,
         activeClients: data.retentionAnalysis.activeClients,
         churnRate: data.retentionAnalysis.churnRate.toFixed(1),
-        topChannels: data.marketingChannels.slice(0,3).map((ch: any) => ({
-          channel: ch.channel,
-          clients: ch.count,
-          conversion: ch.conversionRate.toFixed(1)
-        })),
         wealthSegments: data.wealthSegments.slice(0,3).map((ws: any) => ({
           segment: ws.segment,
           clients: ws.count
@@ -203,7 +171,7 @@ ${JSON.stringify(analyticsData, null, 2)}
           type: 'info',
           icon: <Brain className="h-5 w-5" />,
           title: 'Оптимизация маркетинговых каналов',
-          description: `Анализ показывает неравномерное распределение: топ-канал приносит ${data.marketingChannels[0]?.percentage.toFixed(1)}% клиентов`,
+          description: `Анализ показывает возможности для оптимизации клиентской базы`,
           recommendation: 'Диверсифицируйте источники трафика и увеличьте инвестиции в недооцененные каналы',
           impact: 'high',
           aiGenerated: true

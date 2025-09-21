@@ -2,7 +2,6 @@ import type {
   ClientData, 
   ClientPortrait, 
   ClientSegment, 
-  MarketingChannel, 
   ActivityLevel, 
   OnboardingStats,
   ChartDataPoint 
@@ -59,51 +58,6 @@ const calculateChurnRisk = (data: ClientData[]): { lowRisk: number; mediumRisk: 
   return { lowRisk, mediumRisk, highRisk, percentile75 };
 };
 
-// Извлечение маркетинговых каналов
-const extractMarketingChannels = (data: ClientData[]): MarketingChannel[] => {
-  const channelFields = [
-    'Маркетинг KZ - Блоггеры - daulet',
-    'Маркетинг KZ - Блоггеры - gulmira_qarasai',
-    'Маркетинг KZ - Лендинг - ffinkz',
-    'Маркетинг KZ - Лендинг - global',
-    'Маркетинг KZ - Рекламные Кабинеты - Google',
-    'Маркетинг KZ - Рекламные Кабинеты - TikTok',
-    'Органика',
-    'Рефералка Sales',
-    'Банк'
-  ];
-
-  let channels: MarketingChannel[] = [];
-
-  channelFields.forEach(field => {
-    const clientsInChannel = data.filter(client => (client as any)[field] === 1);
-    if (clientsInChannel.length > 0) {
-      const onboardedClients = clientsInChannel.filter(client => client.client_onboarded_any);
-      const totalDeposits = clientsInChannel.reduce((sum, client) => sum + client.total_deposit, 0);
-      
-      channels.push({
-        channel: field.replace('Маркетинг KZ - ', '').replace('Рекламные Кабинеты - ', ''),
-        count: clientsInChannel.length,
-        percentage: (clientsInChannel.length / data.length) * 100,
-        conversionRate: clientsInChannel.length > 0 ? (onboardedClients.length / clientsInChannel.length) * 100 : 0,
-        avgLTV: clientsInChannel.length > 0 ? totalDeposits / clientsInChannel.length : 0
-      });
-    }
-  });
-
-  // Если нет данных, создаем тестовые каналы
-  if (channels.length === 0) {
-    channels = [
-      { channel: 'Google Ads', count: Math.floor(data.length * 0.30), percentage: 30, conversionRate: 85, avgLTV: 2.5 },
-      { channel: 'TikTok', count: Math.floor(data.length * 0.25), percentage: 25, conversionRate: 78, avgLTV: 1.8 },
-      { channel: 'Блоггеры', count: Math.floor(data.length * 0.20), percentage: 20, conversionRate: 65, avgLTV: 3.2 },
-      { channel: 'Органика', count: Math.floor(data.length * 0.15), percentage: 15, conversionRate: 90, avgLTV: 4.1 },
-      { channel: 'Рефералы', count: Math.floor(data.length * 0.10), percentage: 10, conversionRate: 95, avgLTV: 5.8 }
-    ];
-  }
-
-  return channels.sort((a, b) => b.count - a.count);
-};
 
 // Анализ демографических данных
 const analyzeDemographics = (data: ClientData[]) => {
@@ -178,7 +132,12 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
   }, {} as Record<string, number>);
 
   Object.entries(activityGroups).forEach(([level, count]) => {
-    const { range, color } = getActivityLevel(Object.keys(activityGroups).includes(level) ? 1 : 0);
+    // Find a representative activity value for this level to get the correct range and color
+    const representativeClient = data.find(client => {
+      const { level: clientLevel } = getActivityLevel(client.avg_activity);
+      return clientLevel === level;
+    });
+    const { range, color } = representativeClient ? getActivityLevel(representativeClient.avg_activity) : getActivityLevel(0);
     activityLevels.push({ level, count, range, color });
   });
 
@@ -226,8 +185,6 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
     });
   });
 
-  // Анализ маркетинговых каналов
-  const marketingChannels = extractMarketingChannels(data);
 
   // Статистика онбординга
   const startedOnboarding = data.filter(client => client.any_started_onboarding > 0);
@@ -278,7 +235,6 @@ export const analyzeClientData = (data: ClientData[]): ClientPortrait => {
     totalClients,
     segments: segments.sort((a, b) => b.count - a.count),
     wealthSegments: wealthSegments.sort((a, b) => b.avgDeposit - a.avgDeposit),
-    marketingChannels,
     activityLevels,
     onboardingStats,
     demographics,
@@ -352,16 +308,6 @@ export const generateBusinessInsights = (portrait: ClientPortrait) => {
     ]
   });
   
-  // Топ маркетинговые каналы
-  const topChannels = portrait.marketingChannels.slice(0, 5);
-  insights.push({
-    category: 'Маркетинговая эффективность',
-    metrics: topChannels.map(channel => ({
-      name: channel.channel.replace('Маркетинг KZ - ', ''),
-      value: `${channel.count} клиентов (${channel.percentage.toFixed(1)}%)`,
-      conversion: `${channel.conversionRate.toFixed(1)}% конверсия`
-    }))
-  });
   
   // Рекомендации
   const recommendations = [];
@@ -374,10 +320,6 @@ export const generateBusinessInsights = (portrait: ClientPortrait) => {
     recommendations.push('Разработать программу удержания клиентов');
   }
   
-  const topChannel = portrait.marketingChannels[0];
-  if (topChannel && topChannel.percentage > 40) {
-    recommendations.push('Диверсифицировать маркетинговые каналы');
-  }
   
   insights.push({
     category: 'Рекомендации',
